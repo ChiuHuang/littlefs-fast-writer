@@ -162,29 +162,51 @@ $('connect').addEventListener('click', async () => {
 
 // ── File selection ────────────────────────────────────────────────────────────
 
-$('files').addEventListener('change', () => {
-  const list = $('fileList');
-  list.innerHTML = '';
-  const files = [...$('files').files];
-  const totalSize = files.reduce((s, f) => s + f.size, 0);
+let selectedFiles = []; // Array of { file, targetPath }
 
-  files.forEach(f => {
+function handleFilesSelected(event) {
+  const list = $('fileList');
+  if (event.target.id === 'files') {
+    list.innerHTML = '';
+    selectedFiles = [];
+  }
+  
+  const files = [...event.target.files];
+  
+  for (const f of files) {
+    let targetPath = f.name;
+    if (f.webkitRelativePath) {
+      // webkitRelativePath is "folderName/sub/file.txt". We strip the top-level "folderName/".
+      const parts = f.webkitRelativePath.split('/');
+      if (parts.length > 1) {
+        parts.shift(); // remove "folderName"
+        targetPath = parts.join('/');
+      } else {
+        targetPath = f.webkitRelativePath;
+      }
+    }
+    
+    selectedFiles.push({ file: f, targetPath });
+    
     const item = document.createElement('mdui-list-item');
     item.setAttribute('icon', 'insert_drive_file');
-    item.textContent = `${f.name}  —  ${fmtBytes(f.size)}`;
+    item.textContent = `${targetPath}  —  ${fmtBytes(f.size)}`;
     list.appendChild(item);
-  });
+  }
 
-  log(`Files selected: ${files.length} file(s), total ${fmtBytes(totalSize)}`, 'info');
-});
+  const totalSize = selectedFiles.reduce((s, f) => s + f.file.size, 0);
+  log(`Files selected: ${selectedFiles.length} file(s), total ${fmtBytes(totalSize)}`, 'info');
+}
+
+$('files').addEventListener('change', handleFilesSelected);
+$('folder').addEventListener('change', handleFilesSelected);
 
 // ── Build ─────────────────────────────────────────────────────────────────────
 
 $('build').addEventListener('click', async () => {
   try {
-    const files = [...$('files').files];
-    if (!files.length) throw new Error('No files selected.');
-
+    if (!selectedFiles.length) throw new Error('No files selected.');
+    
     const blockSize    = 4096;
     const blockCount   = Math.floor(partition.size / blockSize);
     // lookaheadSize must be a multiple of 8; scale with blockCount, clamp to [32, 512]
@@ -197,13 +219,19 @@ $('build').addEventListener('click', async () => {
     log('LittleFS WASM module initialised and formatted', 'debug');
 
     const doPrepend = $('prependSlash').checked;
-    for (const f of files) {
-      // LittleFS usually prefers paths without leading slashes.
-      // ESP-IDF VFS strips the mount point (e.g. /spiffs/) and expects the filename directly.
-      const path = doPrepend ? '/' + f.name : f.name;
-      log(`  Adding file: ${path}  (${fmtBytes(f.size)})`, 'debug');
-      const data = new Uint8Array(await f.arrayBuffer());
-      fs.addFile(path, data);
+    for (const item of selectedFiles) {
+      // Create parent directories if needed
+      const parts = item.targetPath.split('/');
+      let currentPath = '';
+      for (let i = 0; i < parts.length - 1; i++) {
+        currentPath += (currentPath ? '/' : '') + parts[i];
+        try { fs.mkdir(currentPath); } catch(e) { /* ignore */ }
+      }
+      
+      const finalPath = doPrepend ? '/' + item.targetPath : item.targetPath;
+      log(`  Adding file: ${finalPath}  (${fmtBytes(item.file.size)})`, 'debug');
+      const data = new Uint8Array(await item.file.arrayBuffer());
+      fs.addFile(finalPath, data);
     }
 
     // Unmount flushes the LittleFS cache/lookahead/superblock to the RAM image buffer
