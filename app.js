@@ -316,9 +316,12 @@ $('build').addEventListener('click', async () => {
 
 $('write').addEventListener('click', async () => {
   try {
-    if (!image) throw new Error('Build an image first.');
-
-    log('──────────────────────────────────────────────────', 'info');
+    if (!image || !partition) throw new Error('Image or partition info missing.');
+    
+    // Trigger PPT-like transition
+    document.body.classList.add('is-flashing');
+    
+    log(`──────────────────────────────────────────────────`, 'info');
     log(`Starting write sequence`, 'info');
     
     // Auto-test logic before writing
@@ -415,6 +418,14 @@ $('write').addEventListener('click', async () => {
           setProgress(pct, `Writing… ${pct} %  (${fmtBytes(written)} / ${fmtBytes(total)})`);
         } else {
           setProgress(100, `Writing complete. Hardware verifying MD5 hash... (this may take up to 30s)`, true);
+          // Show dialog
+          $('verifyDialog').open = true;
+          $('verifySpinner').style.display = 'inline-block';
+          $('verifySuccessIcon').style.display = 'none';
+          $('verifySuccessIcon').classList.remove('pop-anim');
+          $('verifyTitle').textContent = 'Verifying Flash...';
+          $('verifyText').textContent = 'Hardware MD5 hash check in progress (up to 30s)';
+          $('verifyActions').style.display = 'none';
         }
       },
     });
@@ -423,15 +434,25 @@ $('write').addEventListener('click', async () => {
     log('Write complete — reset the device to boot from the new filesystem.', 'ok');
     log('─────────────────────────────', 'info');
 
-    mdui.dialog({
-      headline: 'Flash complete ✔',
-      description: 'LittleFS written successfully. Reset the device to boot from the new filesystem.',
-      actions: [{ text: 'OK' }],
-    });
+    // Update dialog to success
+    $('verifySpinner').style.display = 'none';
+    $('verifySuccessIcon').style.display = 'inline-block';
+    $('verifySuccessIcon').classList.add('pop-anim');
+    $('verifyTitle').textContent = 'Flash Complete ✔';
+    $('verifyText').textContent = 'LittleFS written successfully. Reset the device to boot.';
+    $('verifyActions').style.display = 'flex';
+
   } catch (e) {
     if (transport) await transport.disconnect();
+    document.body.classList.remove('is-flashing');
+    if ($('verifyDialog').open) $('verifyDialog').open = false;
     showError('Write error', e.message);
   }
+});
+
+$('verifyOkBtn').addEventListener('click', () => {
+  $('verifyDialog').open = false;
+  document.body.classList.remove('is-flashing');
 });
 
 // ── List Contents ─────────────────────────────────────────────────────────────

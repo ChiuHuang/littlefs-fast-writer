@@ -27,8 +27,8 @@
         <!-- Hero subtitle -->
         <p class="subtitle">Build a fresh LittleFS image locally and flash it without downloading the existing filesystem.</p>
 
-        <!-- ── Connection ─────────────────────────────────────── -->
-        <mdui-card class="card" variant="outlined">
+        <!-- ?�?� Connection ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?� -->
+        <mdui-card class="card transition-card" variant="outlined">
           <div class="card-header">
             <mdui-icon name="usb"></mdui-icon>
             <span class="card-title">Connection</span>
@@ -39,8 +39,8 @@
           </div>
         </mdui-card>
 
-        <!-- ── Partition ──────────────────────────────────────── -->
-        <mdui-card class="card" variant="outlined">
+        <!-- ?�?� Partition ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?� -->
+        <mdui-card class="card transition-card" variant="outlined">
           <div class="card-header">
             <mdui-icon name="sd_card"></mdui-icon>
             <span class="card-title">Partition</span>
@@ -50,8 +50,8 @@
           </div>
         </mdui-card>
 
-        <!-- ── Files ──────────────────────────────────────────── -->
-        <mdui-card class="card" variant="outlined">
+        <!-- ?�?� Files ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?� -->
+        <mdui-card class="card transition-card" variant="outlined">
           <div class="card-header">
             <mdui-icon name="folder"></mdui-icon>
             <span class="card-title">Files</span>
@@ -70,7 +70,7 @@
           </div>
         </mdui-card>
 
-        <!-- ── Image & Flash ──────────────────────────────────── -->
+        <!-- ?�?� Image & Flash ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?� -->
         <mdui-card class="card" variant="outlined">
           <div class="card-header">
             <mdui-icon name="memory"></mdui-icon>
@@ -90,7 +90,7 @@
           </div>
         </mdui-card>
 
-        <!-- ── Log ────────────────────────────────────────────── -->
+        <!-- ?�?� Log ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?� -->
         <mdui-card class="card" variant="outlined">
           <div class="card-header">
             <mdui-icon name="terminal"></mdui-icon>
@@ -106,6 +106,19 @@
       </div>
     </mdui-layout-main>
   </mdui-layout>
+  
+  <!-- ?�?� Verification Dialog ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?� -->
+  <mdui-dialog id="verifyDialog" close-on-esc="false" close-on-overlay-click="false">
+    <div style="text-align: center; padding: 32px 24px;">
+      <mdui-circular-progress id="verifySpinner" style="width: 64px; height: 64px;"></mdui-circular-progress>
+      <mdui-icon name="check_circle" id="verifySuccessIcon" style="display: none; font-size: 64px; color: var(--mdui-color-primary);"></mdui-icon>
+      <h2 id="verifyTitle" style="margin-top: 24px; margin-bottom: 8px;">Verifying Flash...</h2>
+      <p id="verifyText" style="color: var(--mdui-color-on-surface-variant);">Hardware MD5 hash check in progress (up to 30s)</p>
+    </div>
+    <div class="mdui-dialog-actions" id="verifyActions" style="display: none; justify-content: center; padding-bottom: 24px;">
+      <mdui-button id="verifyOkBtn" variant="filled">Awesome!</mdui-button>
+    </div>
+  </mdui-dialog>
 
   <script type="module" src="app.js"></script>
 </body>
