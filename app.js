@@ -260,7 +260,7 @@ $('write').addEventListener('click', async () => {
           const dummy = toBinaryString(new Uint8Array(32).fill(0xAA));
           await loader.writeFlash({
             fileArray: [{ address: partition.offset, data: dummy }],
-            flashSize: 'keep', flashMode: 'keep', flashFreq: 'keep', eraseAll: false, compress: false,
+            flashSize: 'keep', flashMode: 'keep', flashFreq: 'keep', eraseAll: false, compress: true,
             reportProgress: () => {}
           });
           
@@ -273,6 +273,10 @@ $('write').addEventListener('click', async () => {
           log(`    Failed at ${baud}: ${e.message}`, 'warn');
           if (transport) await transport.disconnect();
         }
+      }
+      
+      if (maxStable === 115200 && !$('autotest').checked === false) {
+          throw new Error('Auto-test failed at all baud rates. Cannot proceed with flash.');
       }
       // Leave loader connected at maxStable
     } else {
