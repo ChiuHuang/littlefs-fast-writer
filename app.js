@@ -19,8 +19,9 @@ function log(msg, level = 'info') {
   const prefix = LOG_LEVELS[level] ?? '  ';
   const ts = new Date().toISOString().replace('T', ' ').slice(0, 23);
   const line = `[${ts}] ${prefix} ${msg}`;
-  $('log').textContent += line + '\n';
-  $('log').scrollTop = 1e9;
+  const el = $('log');
+  el.textContent += line + '\n';
+  el.scrollTop = el.scrollHeight;
   console[level === 'error' ? 'error' : level === 'warn' ? 'warn' : 'log'](line);
 }
 
