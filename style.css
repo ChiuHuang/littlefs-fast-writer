@@ -1,5 +1,5 @@
-/* build-hash-b: __HASH_B__ */
-:root { --bh-b: "__HASH_B__"; }
+/* build-hash-b: 35 */
+:root { --bh-b: "35"; }
 
 /* ── Layout ───────────────────────────────────────────────── */
 .page {

@@ -6,7 +6,7 @@ import { createLittleFS, createLittleFSFromImage } from './wasm/index.js';
 //   HTML  → meta[name="bh-a"]  (chars 0-2)
 //   CSS   → --bh-b             (chars 3-4)
 //   JS    → HASH_C below       (chars 5-6)
-const HASH_C = '__HASH_C__'; // injected by CI
+const HASH_C = 'c1'; // injected by CI
 
 document.addEventListener('DOMContentLoaded', () => {
   const badge = document.getElementById('versionBadge');
