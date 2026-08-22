@@ -56,13 +56,14 @@
             <mdui-icon name="folder"></mdui-icon>
             <span class="card-title">Files</span>
           </div>
-          <div class="card-body row gap-12">
-            <mdui-button icon="attach_file" onclick="document.getElementById('files').click()">Select Files</mdui-button>
-            <input type="file" id="files" multiple style="display: none;">
-            <mdui-button id="build" icon="build" disabled>Build Image</mdui-button>
-          </div>
           <div class="card-body">
-            <mdui-list id="fileList" style="max-height: 200px; overflow-y: auto; background: var(--mdui-color-surface-container); border-radius: 8px;"></mdui-list>
+            <label class="file-drop">
+              <mdui-icon name="upload_file" class="upload-icon"></mdui-icon>
+              <span>Click to select files (or drag &amp; drop)</span>
+              <input id="files" type="file" multiple style="display: none;">
+            </label>
+            <mdui-list id="fileList" style="max-height: 200px; overflow-y: auto; background: var(--mdui-color-surface-container); border-radius: 8px; margin: 12px 0;"></mdui-list>
+            <mdui-button id="build" icon="build" disabled>Build Image</mdui-button>
           </div>
         </mdui-card>
 

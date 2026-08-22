@@ -316,7 +316,7 @@ $('write').addEventListener('click', async () => {
       flashFreq:  'keep',
       eraseAll:   false,
       compress:   true,
-      calculateMD5Hash: (binStr) => SparkMD5.hash(binStr),
+      calculateMD5Hash: () => SparkMD5.ArrayBuffer.hash(image),
       reportProgress: (fileIndex, written, total) => {
         const pct = Math.round(written / total * 100);
         setProgress(pct, `Writing… ${pct} %  (${fmtBytes(written)} / ${fmtBytes(total)})`);
