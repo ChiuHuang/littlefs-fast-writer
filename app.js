@@ -2,10 +2,12 @@ import { ESPLoader, Transport } from 'https://cdn.jsdelivr.net/npm/esptool-js@0.
 import { createLittleFS, createLittleFSFromImage } from './wasm/index.js';
 
 // ── Version badge ─────────────────────────────────────────────────────────────
-fetch('https://api.github.com/repos/ChiuHuang/littlefs-fast-writer/commits/main')
-  .then(r => r.json())
-  .then(d => { if (d.sha) $('versionBadge').textContent = d.sha.slice(0, 7); })
-  .catch(() => { $('versionBadge').textContent = ''; });
+// __BUILD_HASH__ is replaced by the GitHub Action on every push.
+const BUILD_HASH = '__BUILD_HASH__';
+document.addEventListener('DOMContentLoaded', () => {
+  const el = document.getElementById('versionBadge');
+  if (el) el.textContent = BUILD_HASH.startsWith('__') ? 'dev' : BUILD_HASH;
+});
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 

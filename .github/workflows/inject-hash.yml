@@ -1,0 +1,44 @@
+name: Inject build hash
+
+on:
+  push:
+    branches: [main]
+    # Don't re-trigger on the action's own commit
+    paths-ignore:
+      - '.github/**'
+
+jobs:
+  inject:
+    runs-on: ubuntu-latest
+    # Skip if this was already an action commit
+    if: "!contains(github.event.head_commit.message, '[ci skip]')"
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Get pushed commit short SHA
+        id: sha
+        run: echo "short=$(git rev-parse --short ${{ github.sha }})" >> $GITHUB_OUTPUT
+
+      - name: Inject hash into app.js, style.css, index.html
+        run: |
+          HASH="${{ steps.sha.outputs.short }}"
+
+          # app.js  — replace the placeholder constant
+          sed -i "s/__BUILD_HASH__/$HASH/g" app.js
+
+          # style.css — replace comment token
+          sed -i "s/__BUILD_HASH__/$HASH/g" style.css
+
+          # index.html — replace meta content token
+          sed -i "s/__BUILD_HASH__/$HASH/g" index.html
+
+      - name: Commit injected hash
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add app.js style.css index.html
+          git diff --cached --quiet || git commit -m "ci: inject build hash ${{ steps.sha.outputs.short }} [ci skip]"
+          git push
