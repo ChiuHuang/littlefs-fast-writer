@@ -195,16 +195,13 @@ $('write').addEventListener('click', async () => {
     log(`  Partition size   : ${fmtBytes(partition.size)}`, 'info');
     log(`  Image size       : ${fmtBytes(image.length)}`, 'info');
 
-    // ── Erase ──
-    log(`Erasing ${fmtBytes(partition.size)} at ${hex(partition.offset)}…`, 'info');
-    setProgress(0, 'Erasing…');
-    await loader.eraseRegion(partition.offset, partition.size);
-    log('Erase complete', 'ok');
-
     // ── Write in chunks ──
+    // writeFlash with eraseAll:false erases each sector just before writing —
+    // no separate erase step needed (and eraseRegion doesn't exist in esptool-js).
     const CHUNK = 0x4000;   // 16 KiB
     const totalChunks = Math.ceil(image.length / CHUNK);
-    log(`Writing ${fmtBytes(image.length)} in ${totalChunks} chunk(s) of ${fmtBytes(CHUNK)}…`, 'info');
+    log(`Writing ${fmtBytes(image.length)} in ${totalChunks} chunk(s) of ${fmtBytes(CHUNK)} (erase-on-write)…`, 'info');
+    setProgress(0, 'Writing…');
 
     let bytesWritten = 0;
     for (let i = 0; i < image.length; i += CHUNK) {
