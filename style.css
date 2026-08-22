@@ -232,3 +232,20 @@ body.is-flashing #logCard {
   user-select: none;
 }
 
+
+body.is-flashing #flashCard .card-body > .row {
+  display: none !important; /* hide buttons */
+}
+body.is-flashing #flashCard .card-body {
+  justify-content: center;
+  padding: 48px !important; /* more breathing room */
+}
+body.is-flashing #flashLogContainer {
+  margin-top: 32px !important; /* push log down */
+}
+body.is-flashing #log {
+  background: #000;
+  border-radius: 8px;
+  padding: 16px;
+}
+

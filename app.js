@@ -437,12 +437,6 @@ $('write').addEventListener('click', async () => {
           setProgress(100, `Writing complete. Hardware verifying MD5 hash... (this may take up to 30s)`, true);
           // Show dialog
           $('verifyDialog').open = true;
-          $('verifySpinner').style.display = 'inline-block';
-          $('verifySuccessIcon').style.display = 'none';
-          $('verifySuccessIcon').classList.remove('pop-anim');
-          $('verifyTitle').textContent = 'Verifying Flash...';
-          $('verifyText').textContent = 'Hardware MD5 hash check in progress (up to 30s)';
-          $('verifyActions').style.display = 'none';
         }
       },
     });
