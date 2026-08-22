@@ -1,8 +1,9 @@
-name: Inject build hash
+name: Inject build hash (disabled — Vercel build script handles this now)
 
 on:
-  push:
-    branches: [main]
+  workflow_dispatch: # only run manually if needed
+  # push:
+  #   branches: [main]
 
 jobs:
   inject:
