@@ -152,49 +152,68 @@ body.is-flashing .transition-card {
 
 /* -- Fullscreen Flash Animation -- */
 #flashCard {
-  transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-}
-body.is-flashing {
-  overflow: hidden;
-}
-body.is-flashing #flashCard {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  margin: 0;
-  border-radius: 0 !important;
-  border: none;
-  z-index: 9999;
-  display: flex;
-  flex-direction: column;
-  box-sizing: border-box;
-}
-body.is-flashing #flashCard .card-body {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-}
-body.is-flashing #log {
-  max-height: none;
-  height: 100%;
-  flex: 1;
-}
-body.is-flashing #logCard {
-  display: none;
-}
-
-
-#flashCard {
   view-transition-name: flash-card;
 }
+
 body.is-flashing {
   overflow: hidden !important;
-}
-body.is-flashing #flashCard {
-  --mdui-color-outline: transparent;
-  outline: none;
-  box-shadow: none;
+  height: 100vh;
 }
 
+body.is-flashing #flashCard {
+  position: fixed !important;
+  inset: 0 !important;          /* top:0 right:0 bottom:0 left:0 */
+  width: 100vw !important;
+  height: 100vh !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border-radius: 0 !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  z-index: 9999;
+  display: flex !important;
+  flex-direction: column !important;
+  box-sizing: border-box !important;
+  /* Kill the mdui-card internal border via CSS custom property */
+  --mdui-color-outline: transparent !important;
+  --mdui-color-outline-variant: transparent !important;
+}
+
+/* Strip mdui-card's internal ::part border as well */
+body.is-flashing #flashCard::part(base) {
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+body.is-flashing #flashCard .card-header {
+  padding: 12px 20px;
+  flex-shrink: 0;
+}
+
+body.is-flashing #flashCard .card-body {
+  flex: 1 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+  padding: 12px 20px 20px !important;
+}
+
+body.is-flashing #flashLogContainer {
+  flex: 1 !important;
+  overflow: hidden !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+body.is-flashing #log {
+  flex: 1 !important;
+  height: 0 !important;          /* forces flex child to actually scroll */
+  max-height: none !important;
+  overflow-y: auto !important;
+}
+
+body.is-flashing #logCard {
+  display: none !important;
+}
