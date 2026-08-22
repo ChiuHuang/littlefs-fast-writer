@@ -32,14 +32,14 @@ jobs:
           B="${{ steps.sha.outputs.b }}"
           C="${{ steps.sha.outputs.c }}"
 
-          # index.html  — meta tag content
-          sed -i "s/__HASH_A__/$A/g" index.html
+          # index.html  — match the attribute, replace whatever value is there
+          sed -i "s/name=\"bh-a\" content=\"[^\"]*\"/name=\"bh-a\" content=\"$A\"/" index.html
 
-          # style.css   — CSS custom property + comment
-          sed -i "s/__HASH_B__/$B/g" style.css
+          # style.css   — match the custom property, replace its value
+          sed -i "s/--bh-b: \"[^\"]*\";/--bh-b: \"$B\";/" style.css
 
-          # app.js      — JS constant
-          sed -i "s/__HASH_C__/$C/g" app.js
+          # app.js      — match the const declaration, replace its value
+          sed -i "s/const HASH_C = '[^']*';/const HASH_C = '$C';/" app.js
 
       - name: Commit injected hash
         run: |
