@@ -24,6 +24,21 @@ function log(msg, level = 'info') {
   console[level === 'error' ? 'error' : level === 'warn' ? 'warn' : 'log'](line);
 }
 
+/**
+ * Log the error AND show an MDUI dialog popup.
+ * @param {string} title   Short title shown as dialog headline
+ * @param {string} detail  Full error message / detail text
+ */
+function showError(title, detail) {
+  log(`${title}: ${detail}`, 'error');
+  // mdui.dialog is available from mdui.global.js
+  mdui.dialog({
+    headline: title,
+    description: detail,
+    actions: [{ text: 'Dismiss' }],
+  });
+}
+
 function hex(n) { return '0x' + n.toString(16).toUpperCase().padStart(8, '0'); }
 
 function fmtBytes(n) {
@@ -33,8 +48,22 @@ function fmtBytes(n) {
 }
 
 function setProgress(pct, label = '') {
-  $('progress').value = pct / 100;   // mdui-linear-progress uses 0-1
+  $('progress').value = pct / 100;   // mdui-linear-progress uses 0–1
   $('progressLabel').textContent = label;
+}
+
+/**
+ * Convert a Uint8Array to a binary string.
+ * esptool-js requires data as a binary string (calls .charCodeAt internally).
+ */
+function toBinaryString(u8) {
+  let s = '';
+  // Process in 8 KiB slices to avoid call-stack overflow on large arrays
+  const SLICE = 8192;
+  for (let i = 0; i < u8.length; i += SLICE) {
+    s += String.fromCharCode.apply(null, u8.subarray(i, i + SLICE));
+  }
+  return s;
 }
 
 // ── Partition parsing ─────────────────────────────────────────────────────────
@@ -117,7 +146,7 @@ $('connect').addEventListener('click', async () => {
 
     await readPartitions();
   } catch (e) {
-    log(`Connect failed: ${e.message}`, 'error');
+    showError('Connect failed', e.message);
   }
 });
 
@@ -178,7 +207,7 @@ $('build').addEventListener('click', async () => {
     $('write').disabled = false;
     setProgress(0, 'Ready to flash.');
   } catch (e) {
-    log(`Build error: ${e.message}`, 'error');
+    showError('Build error', e.message);
   }
 });
 
@@ -189,15 +218,14 @@ $('write').addEventListener('click', async () => {
     if (!image) throw new Error('Build an image first.');
 
     log('──────────────────────────────────────────────────', 'info');
-    log(`Starting erase+write sequence`, 'info');
+    log(`Starting write sequence`, 'info');
     log(`  Target partition : "${partition.label}"`, 'info');
     log(`  Offset           : ${hex(partition.offset)}`, 'info');
     log(`  Partition size   : ${fmtBytes(partition.size)}`, 'info');
     log(`  Image size       : ${fmtBytes(image.length)}`, 'info');
 
-    // ── Write in chunks ──
-    // writeFlash with eraseAll:false erases each sector just before writing —
-    // no separate erase step needed (and eraseRegion doesn't exist in esptool-js).
+    // writeFlash with eraseAll:false erases each sector just before writing it.
+    // data must be a binary string — Uint8Array causes "charCodeAt is not a function".
     const CHUNK = 0x4000;   // 16 KiB
     const totalChunks = Math.ceil(image.length / CHUNK);
     log(`Writing ${fmtBytes(image.length)} in ${totalChunks} chunk(s) of ${fmtBytes(CHUNK)} (erase-on-write)…`, 'info');
@@ -206,9 +234,11 @@ $('write').addEventListener('click', async () => {
     let bytesWritten = 0;
     for (let i = 0; i < image.length; i += CHUNK) {
       const chunkIndex = Math.floor(i / CHUNK) + 1;
-      const data = image.slice(i, i + CHUNK);
+      const chunk = image.slice(i, i + CHUNK);
+      // Convert to binary string — esptool-js calls .charCodeAt() internally
+      const data = toBinaryString(chunk);
 
-      log(`  Chunk ${chunkIndex}/${totalChunks}  address=${hex(partition.offset + i)}  size=${fmtBytes(data.length)}`, 'debug');
+      log(`  Chunk ${chunkIndex}/${totalChunks}  address=${hex(partition.offset + i)}  size=${fmtBytes(chunk.length)}`, 'debug');
 
       await loader.writeFlash({
         fileArray: [{ address: partition.offset + i, data }],
@@ -228,8 +258,14 @@ $('write').addEventListener('click', async () => {
     setProgress(100, 'Flash complete ✔');
     log('Write complete — reset the device to boot from the new filesystem.', 'ok');
     log('──────────────────────────────────────────────────', 'info');
+
+    mdui.dialog({
+      headline: 'Flash complete ✔',
+      description: 'LittleFS written successfully. Reset the device to boot from the new filesystem.',
+      actions: [{ text: 'OK' }],
+    });
   } catch (e) {
-    log(`Write error: ${e.message}`, 'error');
+    showError('Write error', e.message);
   }
 });
 
