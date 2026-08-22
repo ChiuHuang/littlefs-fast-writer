@@ -1,5 +1,5 @@
 import { ESPLoader, Transport } from 'https://cdn.jsdelivr.net/npm/esptool-js@0.5.7/bundle.js';
-import { createLittleFS } from './wasm/index.js';
+import { createLittleFS, createLittleFSFromImage } from './wasm/index.js';
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -249,6 +249,7 @@ $('build').addEventListener('click', async () => {
       `Used       : ${(image.length / partition.size * 100).toFixed(1)} %`;
 
     $('write').disabled = false;
+    $('listContents').disabled = false;
     setProgress(0, 'Ready to flash.');
   } catch (e) {
     showError('Build error', e.message);
@@ -360,7 +361,7 @@ $('write').addEventListener('click', async () => {
 
     setProgress(100, 'Flash complete ✔');
     log('Write complete — reset the device to boot from the new filesystem.', 'ok');
-    log('──────────────────────────────────────────────────', 'info');
+    log('─────────────────────────────', 'info');
 
     mdui.dialog({
       headline: 'Flash complete ✔',
@@ -368,7 +369,44 @@ $('write').addEventListener('click', async () => {
       actions: [{ text: 'OK' }],
     });
   } catch (e) {
+    if (transport) await transport.disconnect();
     showError('Write error', e.message);
+  }
+});
+
+// ── List Contents ─────────────────────────────────────────────────────────────
+
+$('listContents').addEventListener('click', async () => {
+  try {
+    if (!image) throw new Error('Build an image first.');
+    log('──────────────────────────────────────────────────', 'info');
+    log('Mounting built image to list contents...', 'info');
+    
+    // Create a read-only instance from the binary image
+    const fs = await createLittleFSFromImage(image);
+    
+    let fileCount = 0;
+    const listDir = (path) => {
+      const entries = fs.list(path);
+      for (const entry of entries) {
+        if (entry.name === '.' || entry.name === '..') continue;
+        
+        if (entry.type === 'dir') {
+          log(`  [DIR]  ${entry.path}`, 'debug');
+          listDir(entry.path);
+        } else {
+          log(`  [FILE] ${entry.path}  (${fmtBytes(entry.size)})`, 'debug');
+          fileCount++;
+        }
+      }
+    };
+    
+    listDir('/');
+    log(`Finished listing ${fileCount} files.`, 'ok');
+    
+    fs.cleanup();
+  } catch (e) {
+    showError('List Error', e.message);
   }
 });
 
