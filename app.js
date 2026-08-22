@@ -145,7 +145,9 @@ $('connect').addEventListener('click', async () => {
 
     log(`Testing connection at ${initialBaud} baud…`, 'debug');
     const chipInfo = await loader.main();
+    window.connectedMac = await loader.chip.readMac(loader);
     log(`Chip detected: ${chipInfo ?? '(unknown)'}`, 'ok');
+    log(`MAC Address: ${window.connectedMac}`, 'ok');
     log(`Successfully connected at ${initialBaud} baud!`, 'ok');
 
     $('status').textContent = 'Connected';
@@ -194,12 +196,14 @@ $('build').addEventListener('click', async () => {
     const fs = await createLittleFS({ blockSize, blockCount, lookaheadSize, formatOnInit: true });
     log('LittleFS WASM module initialised and formatted', 'debug');
 
+    const doPrepend = $('prependSlash').checked;
     for (const f of files) {
       // LittleFS usually prefers paths without leading slashes.
       // ESP-IDF VFS strips the mount point (e.g. /spiffs/) and expects the filename directly.
-      log(`  Adding file: ${f.name}  (${fmtBytes(f.size)})`, 'debug');
+      const path = doPrepend ? '/' + f.name : f.name;
+      log(`  Adding file: ${path}  (${fmtBytes(f.size)})`, 'debug');
       const data = new Uint8Array(await f.arrayBuffer());
-      fs.addFile(f.name, data);
+      fs.addFile(path, data);
     }
 
     // Unmount flushes the LittleFS cache/lookahead/superblock to the RAM image buffer
@@ -233,6 +237,7 @@ $('write').addEventListener('click', async () => {
     log(`Starting write sequence`, 'info');
     
     // Auto-test logic before writing
+    const lsKey = window.connectedMac ? `max-baud-${window.connectedMac}` : 'max-baud';
     if ($('autotest').checked) {
       log('Starting auto-baud stability test…', 'info');
       const testRates = [2000000, 1500000, 921600, 460800, 115200];
@@ -268,7 +273,7 @@ $('write').addEventListener('click', async () => {
           
           maxStable = baud;
           log(`  Stable at ${baud} baud! ✔`, 'ok');
-          localStorage.setItem('max-baud', baud.toString());
+          localStorage.setItem(lsKey, baud.toString());
           $('autotest').checked = false;
           break;
         } catch (e) {
@@ -283,7 +288,7 @@ $('write').addEventListener('click', async () => {
       // Leave loader connected at maxStable
     } else {
       // Not autotesting, but let's check if we have a saved max-baud
-      const savedBaud = parseInt(localStorage.getItem('max-baud'), 10);
+      const savedBaud = parseInt(localStorage.getItem(lsKey), 10);
       if (savedBaud && savedBaud !== loader.baudrate) {
         log(`Reconnecting at saved max speed: ${savedBaud} baud…`, 'info');
         if (transport) await transport.disconnect();
