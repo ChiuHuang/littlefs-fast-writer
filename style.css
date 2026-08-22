@@ -1,26 +1,122 @@
-:root{font-family:"Roboto","Segoe UI",sans-serif;background:#f4f7fb;color:#17212f;line-height:1.5;color-scheme:light;--blue:#1976d2;--blue-dark:#0d47a1;--ink-muted:#5f6b7a;--line:#d9e2ee;--surface:#fff;--code:#102a43}
-:root{font-family:"Roboto","Segoe UI",sans-serif;background:#f4f7fb;color:#17212f;line-height:1.5;color-scheme:light;--blue:#1976d2;--blue-dark:#0d47a1;--ink-muted:#5f6b7a;--line:#d9e2ee;--surface:#fff;--code:#102a43;--mdui-color-primary:#1976d2;--mdui-color-on-primary:#fff;--mdui-color-surface:#fff}
-*{box-sizing:border-box}
-body{margin:0;min-height:100vh;background:linear-gradient(135deg,#eaf4ff 0%,#f7fbff 42%,#f4f7fb 100%)}
-main{max-width:920px;margin:auto;padding:48px 24px 64px}
-h1{margin:0;color:#0d47a1;font-size:clamp(2rem,4vw,3rem);font-weight:700;letter-spacing:-.02em}
-main>p{max-width:680px;margin:10px 0 30px;color:var(--ink-muted);font-size:1.05rem}
-section{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:24px;margin:18px 0;box-shadow:0 3px 10px #194b7d12,0 1px 3px #194b7d14}
-h2{margin:0 0 14px;color:#263b53;font-size:1.15rem;font-weight:600}
-section:first-of-type{display:flex;align-items:center;gap:14px;padding:16px 20px;border-left:4px solid var(--blue)}
-section:first-of-type{display:flex;align-items:center;gap:14px;padding:16px 20px;border-left:4px solid var(--blue)}
-mdui-button{--shape-corner:4px;margin:6px 8px 6px 0}
-button{padding:11px 20px;border:0;border-radius:4px;background:var(--blue);color:#fff;font:600 .92rem "Roboto","Segoe UI",sans-serif;letter-spacing:.02em;cursor:pointer;box-shadow:0 2px 5px #1976d24d;transition:background .18s ease,box-shadow .18s ease,transform .18s ease}
-button:hover:not(:disabled){background:#1565c0;box-shadow:0 4px 9px #1976d266;transform:translateY(-1px)}
-button:focus-visible{outline:3px solid #90caf9;outline-offset:2px}
-button:disabled{background:#9eabb9;box-shadow:none;cursor:not-allowed;opacity:.7}
-#status{color:#2e7d32;font-weight:600}
-pre{white-space:pre-wrap;overflow:auto;margin:0;background:var(--code);color:#e3f2fd;padding:16px;border-radius:4px;font:13px/1.6 Consolas,"Courier New",monospace}
-input[type=file]{display:block;width:100%;padding:12px;border:1px dashed #90caf9;border-radius:4px;background:#f5faff;color:#47627d;cursor:pointer}
-ul{margin:16px 0;padding-left:22px;color:#40566d}
-li{margin:6px 0}
-section:nth-of-type(3) button{margin-top:6px}
-mdui-linear-progress{display:block;margin-top:18px;--indicator-color:var(--blue)}
-#log{min-height:96px;color:#d9edff}
-@media(max-width:600px){main{padding:28px 16px 40px}section{padding:18px}section:first-of-type{align-items:flex-start;flex-direction:column;gap:6px}button{width:100%;margin-top:8px}}
-@media(max-width:600px){main{padding:28px 16px 40px}section{padding:18px}section:first-of-type{align-items:flex-start;flex-direction:column;gap:6px}mdui-button{width:100%;margin-top:8px}}
+/* ── Layout ───────────────────────────────────────────────── */
+.page {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 24px 16px 80px;
+}
+
+.subtitle {
+  color: var(--mdui-color-on-surface-variant);
+  margin: 0 0 20px;
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+/* ── Cards ────────────────────────────────────────────────── */
+.card {
+  display: block;
+  width: 100%;
+  margin-bottom: 16px;
+  padding: 20px 24px;
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+  color: var(--mdui-color-primary);
+}
+
+.card-title {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--mdui-color-on-surface);
+  flex: 1;
+}
+
+.card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* ── Utility ──────────────────────────────────────────────── */
+.row    { display: flex; flex-direction: row; }
+.gap-12 { gap: 12px; }
+.align-center { align-items: center; }
+.spacer { flex: 1; }
+
+/* ── Code / Log blocks ────────────────────────────────────── */
+.code-block {
+  margin: 0;
+  padding: 14px 16px;
+  border-radius: 8px;
+  background: var(--mdui-color-surface-variant);
+  color: var(--mdui-color-on-surface-variant);
+  font: 12.5px/1.65 "Roboto Mono", "Consolas", monospace;
+  white-space: pre-wrap;
+  overflow-x: auto;
+}
+
+.log-block {
+  min-height: 140px;
+  max-height: 380px;
+  overflow-y: auto;
+  background: var(--mdui-color-surface-container-highest, #1c1b1f);
+  color: var(--mdui-color-on-surface-variant, #cac4d0);
+}
+
+/* ── File input ───────────────────────────────────────────── */
+.file-drop {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 24px;
+  border: 2px dashed var(--mdui-color-outline);
+  border-radius: 12px;
+  cursor: pointer;
+  text-align: center;
+  color: var(--mdui-color-on-surface-variant);
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.file-drop:hover {
+  background: var(--mdui-color-surface-container-high);
+  border-color: var(--mdui-color-primary);
+}
+
+.file-drop input[type="file"] {
+  display: none;
+}
+
+.upload-icon {
+  font-size: 2.5rem;
+  color: var(--mdui-color-primary);
+}
+
+/* ── Progress ─────────────────────────────────────────────── */
+mdui-linear-progress {
+  display: block;
+  margin-top: 4px;
+}
+
+.progress-label {
+  font-size: 0.78rem;
+  color: var(--mdui-color-on-surface-variant);
+  min-height: 1.2em;
+}
+
+/* ── File list ────────────────────────────────────────────── */
+#fileList {
+  padding: 0;
+  margin: 0;
+}
+
+/* ── Responsive ───────────────────────────────────────────── */
+@media (max-width: 600px) {
+  .page  { padding: 12px 8px 60px; }
+  .card  { padding: 14px 14px; }
+  .row   { flex-direction: column; }
+}

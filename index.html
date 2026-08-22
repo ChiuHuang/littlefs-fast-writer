@@ -1,41 +1,97 @@
-<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ESP LittleFS Fast Writer</title><link rel="stylesheet" href="style.css"></head><body><main><h1>ESP LittleFS Fast Writer</h1><p>Build a fresh LittleFS image locally and flash it without downloading the existing filesystem.</p><section><button id="connect">Connect ESP</button><span id="status">Disconnected</span></section><section><h2>Partition</h2><pre id="partition">Connect to detect partition table…</pre></section><section><h2>Files</h2><input id="files" type="file" multiple><ul id="fileList"></ul><button id="build" disabled>Build LittleFS Image</button></section><section><pre id="image">No image built.</pre><button id="write" disabled>Erase + Write LittleFS</button><progress id="progress" max="100" value="0"></progress></section><section><h2>Log</h2><pre id="log"></pre></section></main><script type="module" src="app.js"></script></body></html>
 <!doctype html>
-<html>
+<html lang="en">
 <head>
-	<meta charset="utf-8">
-	<meta name="viewport" content="width=device-width,initial-scale=1">
-	<title>ESP LittleFS Fast Writer</title>
-	<link rel="stylesheet" href="https://unpkg.com/mdui@2/mdui.css">
-	<script src="https://unpkg.com/mdui@2/mdui.global.js"></script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>ESP LittleFS Fast Writer</title>
+  <!-- MDUI 2 (Material 3) -->
+  <link rel="stylesheet" href="https://unpkg.com/mdui@2/mdui.css">
+  <script src="https://unpkg.com/mdui@2/mdui.global.js"></script>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-	<main>
-		<h1>ESP LittleFS Fast Writer</h1>
-		<p>Build a fresh LittleFS image locally and flash it without downloading the existing filesystem.</p>
-		<section>
-			<mdui-button id="connect" icon="usb" variant="filled">Connect ESP</mdui-button>
-			<span id="status">Disconnected</span>
-		</section>
-		<section>
-			<h2>Partition</h2>
-			<pre id="partition">Connect to detect partition table…</pre>
-		</section>
-		<section>
-			<h2>Files</h2>
-			<input id="files" type="file" multiple>
-			<ul id="fileList"></ul>
-			<mdui-button id="build" icon="build" disabled>Build LittleFS Image</mdui-button>
-		</section>
-		<section>
-			<pre id="image">No image built.</pre>
-			<mdui-button id="write" icon="save" variant="filled" disabled>Erase + Write LittleFS</mdui-button>
-			<mdui-linear-progress id="progress" max="100" value="0"></mdui-linear-progress>
-		</section>
-		<section>
-			<h2>Log</h2>
-			<pre id="log"></pre>
-		</section>
-	</main>
-	<script type="module" src="app.js"></script>
+  <mdui-layout>
+    <mdui-top-app-bar>
+      <mdui-top-app-bar-title>ESP LittleFS Fast Writer</mdui-top-app-bar-title>
+    </mdui-top-app-bar>
+
+    <mdui-layout-main>
+      <div class="page">
+
+        <!-- Hero subtitle -->
+        <p class="subtitle">Build a fresh LittleFS image locally and flash it without downloading the existing filesystem.</p>
+
+        <!-- ── Connection ─────────────────────────────────────── -->
+        <mdui-card class="card" variant="outlined">
+          <div class="card-header">
+            <mdui-icon name="usb"></mdui-icon>
+            <span class="card-title">Connection</span>
+          </div>
+          <div class="card-body row gap-12 align-center">
+            <mdui-button id="connect" icon="usb" variant="filled">Connect ESP</mdui-button>
+            <mdui-chip id="status" icon="link_off" variant="outlined">Disconnected</mdui-chip>
+          </div>
+        </mdui-card>
+
+        <!-- ── Partition ───────────────────────────────────────── -->
+        <mdui-card class="card" variant="outlined">
+          <div class="card-header">
+            <mdui-icon name="table_chart"></mdui-icon>
+            <span class="card-title">Partition</span>
+          </div>
+          <div class="card-body">
+            <pre id="partition" class="code-block">Connect to detect partition table…</pre>
+          </div>
+        </mdui-card>
+
+        <!-- ── Files ──────────────────────────────────────────── -->
+        <mdui-card class="card" variant="outlined">
+          <div class="card-header">
+            <mdui-icon name="folder_open"></mdui-icon>
+            <span class="card-title">Files</span>
+          </div>
+          <div class="card-body">
+            <label class="file-drop">
+              <mdui-icon name="upload_file" class="upload-icon"></mdui-icon>
+              <span>Click to select files (or drag &amp; drop)</span>
+              <input id="files" type="file" multiple>
+            </label>
+            <mdui-list id="fileList"></mdui-list>
+            <mdui-button id="build" icon="build" disabled>Build LittleFS Image</mdui-button>
+          </div>
+        </mdui-card>
+
+        <!-- ── Image &amp; Write ──────────────────────────────────── -->
+        <mdui-card class="card" variant="outlined">
+          <div class="card-header">
+            <mdui-icon name="memory"></mdui-icon>
+            <span class="card-title">Image &amp; Flash</span>
+          </div>
+          <div class="card-body">
+            <pre id="image" class="code-block">No image built.</pre>
+            <mdui-button id="write" icon="flash_on" variant="filled" disabled>Erase + Write LittleFS</mdui-button>
+            <mdui-linear-progress id="progress" value="0"></mdui-linear-progress>
+            <div id="progressLabel" class="progress-label"></div>
+          </div>
+        </mdui-card>
+
+        <!-- ── Log ────────────────────────────────────────────── -->
+        <mdui-card class="card" variant="outlined">
+          <div class="card-header">
+            <mdui-icon name="terminal"></mdui-icon>
+            <span class="card-title">Log</span>
+            <div class="spacer"></div>
+            <mdui-button-icon id="clearLog" icon="delete_sweep" title="Clear log"></mdui-button-icon>
+          </div>
+          <div class="card-body">
+            <pre id="log" class="code-block log-block"></pre>
+          </div>
+        </mdui-card>
+
+      </div>
+    </mdui-layout-main>
+  </mdui-layout>
+
+  <script type="module" src="app.js"></script>
 </body>
 </html>
