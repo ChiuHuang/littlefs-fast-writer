@@ -1,3 +1,6 @@
+/* build-hash-b: __HASH_B__ */
+:root { --bh-b: "__HASH_B__"; }
+
 /* ── Layout ───────────────────────────────────────────────── */
 .page {
   max-width: 860px;

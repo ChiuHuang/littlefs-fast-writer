@@ -1,12 +1,48 @@
 import { ESPLoader, Transport } from 'https://cdn.jsdelivr.net/npm/esptool-js@0.5.7/bundle.js';
 import { createLittleFS, createLittleFSFromImage } from './wasm/index.js';
 
-// ── Version badge ─────────────────────────────────────────────────────────────
-// __BUILD_HASH__ is replaced by the GitHub Action on every push.
-const BUILD_HASH = '__BUILD_HASH__';
+// ── Version badge (split hash verification) ───────────────────────────────────
+// Hash is split across 3 files by GitHub Action on every push:
+//   HTML  → meta[name="bh-a"]  (chars 0-2)
+//   CSS   → --bh-b             (chars 3-4)
+//   JS    → HASH_C below       (chars 5-6)
+const HASH_C = '__HASH_C__'; // injected by CI
+
 document.addEventListener('DOMContentLoaded', () => {
-  const el = document.getElementById('versionBadge');
-  if (el) el.textContent = BUILD_HASH.startsWith('__') ? 'dev' : BUILD_HASH;
+  const badge = document.getElementById('versionBadge');
+  if (!badge) return;
+
+  const hashA = document.querySelector('meta[name="bh-a"]')?.content ?? '';
+  const hashB = getComputedStyle(document.documentElement)
+    .getPropertyValue('--bh-b').trim().replace(/"/g, '');
+  const hashC = HASH_C;
+
+  // If any placeholder is still unreplaced, we're running locally
+  const localHash = hashA + hashB + hashC;
+  if (localHash.includes('__')) {
+    badge.textContent = 'dev';
+    return;
+  }
+
+  badge.textContent = localHash;
+
+  // Verify against GitHub — confirms all 3 parts came from the same commit
+  fetch('https://api.github.com/repos/ChiuHuang/littlefs-fast-writer/commits/main')
+    .then(r => r.json())
+    .then(d => {
+      if (!d.sha) return;
+      const remoteHash = d.sha.slice(0, 7);
+      if (remoteHash === localHash) {
+        badge.title = 'All 3 files verified ✔ — HTML + CSS + JS match GitHub';
+        badge.style.color = 'var(--mdui-color-primary)';
+      } else {
+        badge.textContent = `${localHash} ≠ ${remoteHash}`;
+        badge.title = `Files may be stale — GitHub latest is ${remoteHash}`;
+        badge.style.opacity = '0.9';
+        badge.style.color = 'orange';
+      }
+    })
+    .catch(() => {});
 });
 
 // ── Helpers ──────────────────────────────────────────────────────────────────

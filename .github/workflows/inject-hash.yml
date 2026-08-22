@@ -3,16 +3,13 @@ name: Inject build hash
 on:
   push:
     branches: [main]
-    # Don't re-trigger on the action's own commit
-    paths-ignore:
-      - '.github/**'
 
 jobs:
   inject:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-    # Skip if this was already an action commit
+    # Don't retrigger on the action's own commit
     if: "!contains(github.event.head_commit.message, '[ci skip]')"
 
     steps:
@@ -20,27 +17,34 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Get pushed commit short SHA
+      - name: Get pushed commit short SHA (7 chars)
         id: sha
-        run: echo "short=$(git rev-parse --short ${{ github.sha }})" >> $GITHUB_OUTPUT
-
-      - name: Inject hash into app.js, style.css, index.html
         run: |
-          HASH="${{ steps.sha.outputs.short }}"
+          HASH=$(git rev-parse --short=7 ${{ github.sha }})
+          echo "hash=$HASH"          >> $GITHUB_OUTPUT
+          echo "a=${HASH:0:3}"       >> $GITHUB_OUTPUT
+          echo "b=${HASH:3:2}"       >> $GITHUB_OUTPUT
+          echo "c=${HASH:5:2}"       >> $GITHUB_OUTPUT
 
-          # app.js  — replace the placeholder constant
-          sed -i "s/__BUILD_HASH__/$HASH/g" app.js
+      - name: Inject hash parts into HTML, CSS, JS
+        run: |
+          A="${{ steps.sha.outputs.a }}"
+          B="${{ steps.sha.outputs.b }}"
+          C="${{ steps.sha.outputs.c }}"
 
-          # style.css — replace comment token
-          sed -i "s/__BUILD_HASH__/$HASH/g" style.css
+          # index.html  — meta tag content
+          sed -i "s/__HASH_A__/$A/g" index.html
 
-          # index.html — replace meta content token
-          sed -i "s/__BUILD_HASH__/$HASH/g" index.html
+          # style.css   — CSS custom property + comment
+          sed -i "s/__HASH_B__/$B/g" style.css
+
+          # app.js      — JS constant
+          sed -i "s/__HASH_C__/$C/g" app.js
 
       - name: Commit injected hash
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add app.js style.css index.html
-          git diff --cached --quiet || git commit -m "ci: inject build hash ${{ steps.sha.outputs.short }} [ci skip]"
+          git add index.html style.css app.js
+          git diff --cached --quiet || git commit -m "ci: inject build hash ${{ steps.sha.outputs.hash }} [ci skip]"
           git push
