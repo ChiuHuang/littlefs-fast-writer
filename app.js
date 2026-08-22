@@ -47,8 +47,14 @@ function fmtBytes(n) {
   return `${(n / 1048576).toFixed(2)} MiB`;
 }
 
-function setProgress(pct, label = '') {
-  $('progress').value = pct / 100;   // mdui-linear-progress uses 0–1
+function setProgress(pct, label = '', indeterminate = false) {
+  const p = $('progress');
+  if (indeterminate) {
+    p.setAttribute('indeterminate', '');
+  } else {
+    p.removeAttribute('indeterminate');
+    p.value = pct / 100;   // mdui-linear-progress uses 0..1
+  }
   $('progressLabel').textContent = label;
 }
 
@@ -405,11 +411,15 @@ $('write').addEventListener('click', async () => {
       calculateMD5Hash: () => SparkMD5.ArrayBuffer.hash(image),
       reportProgress: (fileIndex, written, total) => {
         const pct = Math.round(written / total * 100);
-        setProgress(pct, `Writing… ${pct} %  (${fmtBytes(written)} / ${fmtBytes(total)})`);
+        if (written < total) {
+          setProgress(pct, `Writing… ${pct} %  (${fmtBytes(written)} / ${fmtBytes(total)})`);
+        } else {
+          setProgress(100, `Writing complete. Hardware verifying MD5 hash... (this may take up to 30s)`, true);
+        }
       },
     });
 
-    setProgress(100, 'Flash complete ✔');
+    setProgress(100, 'Flash verified and complete ✔', false);
     log('Write complete — reset the device to boot from the new filesystem.', 'ok');
     log('─────────────────────────────', 'info');
 
