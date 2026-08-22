@@ -195,9 +195,11 @@ $('build').addEventListener('click', async () => {
     log('LittleFS WASM module initialised and formatted', 'debug');
 
     for (const f of files) {
-      log(`  Adding file: /${f.name}  (${fmtBytes(f.size)})`, 'debug');
+      // LittleFS usually prefers paths without leading slashes.
+      // ESP-IDF VFS strips the mount point (e.g. /spiffs/) and expects the filename directly.
+      log(`  Adding file: ${f.name}  (${fmtBytes(f.size)})`, 'debug');
       const data = new Uint8Array(await f.arrayBuffer());
-      fs.addFile('/' + f.name, data);
+      fs.addFile(f.name, data);
     }
 
     // Unmount flushes the LittleFS cache/lookahead/superblock to the RAM image buffer
