@@ -57,14 +57,12 @@
             <span class="card-title">Files</span>
           </div>
           <div class="card-body">
-            <label class="file-drop">
+            <label class="file-drop" id="dropZone">
               <mdui-icon name="upload_file" class="upload-icon"></mdui-icon>
-              <span>Click to select files (or drag &amp; drop)</span>
+              <span>Click to select files, or drag &amp; drop files/folders here</span>
               <input id="files" type="file" multiple style="display: none;">
             </label>
             <div class="row gap-12 align-center" style="margin-top: 12px;">
-              <mdui-button icon="create_new_folder" onclick="document.getElementById('folder').click()" variant="tonal">Select Folder</mdui-button>
-              <input id="folder" type="file" webkitdirectory style="display: none;">
               <mdui-checkbox id="prependSlash">Prepend '/' to file paths</mdui-checkbox>
             </div>
             <mdui-list id="fileList" style="max-height: 200px; overflow-y: auto; background: var(--mdui-color-surface-container); border-radius: 8px; margin: 12px 0;"></mdui-list>

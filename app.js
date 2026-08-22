@@ -164,42 +164,92 @@ $('connect').addEventListener('click', async () => {
 
 let selectedFiles = []; // Array of { file, targetPath }
 
-function handleFilesSelected(event) {
+function updateFileListUI() {
   const list = $('fileList');
-  if (event.target.id === 'files') {
-    list.innerHTML = '';
-    selectedFiles = [];
-  }
+  list.innerHTML = '';
   
-  const files = [...event.target.files];
-  
-  for (const f of files) {
-    let targetPath = f.name;
-    if (f.webkitRelativePath) {
-      // webkitRelativePath is "folderName/sub/file.txt". We strip the top-level "folderName/".
-      const parts = f.webkitRelativePath.split('/');
-      if (parts.length > 1) {
-        parts.shift(); // remove "folderName"
-        targetPath = parts.join('/');
-      } else {
-        targetPath = f.webkitRelativePath;
-      }
-    }
-    
-    selectedFiles.push({ file: f, targetPath });
-    
-    const item = document.createElement('mdui-list-item');
-    item.setAttribute('icon', 'insert_drive_file');
-    item.textContent = `${targetPath}  —  ${fmtBytes(f.size)}`;
-    list.appendChild(item);
+  for (const item of selectedFiles) {
+    const el = document.createElement('mdui-list-item');
+    el.setAttribute('icon', 'insert_drive_file');
+    el.textContent = `${item.targetPath}  —  ${fmtBytes(item.file.size)}`;
+    list.appendChild(el);
   }
 
   const totalSize = selectedFiles.reduce((s, f) => s + f.file.size, 0);
   log(`Files selected: ${selectedFiles.length} file(s), total ${fmtBytes(totalSize)}`, 'info');
+  $('build').disabled = selectedFiles.length === 0;
 }
 
-$('files').addEventListener('change', handleFilesSelected);
-$('folder').addEventListener('change', handleFilesSelected);
+$('files').addEventListener('change', (event) => {
+  selectedFiles = [];
+  const files = [...event.target.files];
+  for (const f of files) {
+    selectedFiles.push({ file: f, targetPath: f.name });
+  }
+  updateFileListUI();
+  // reset input so the same files can be selected again if needed
+  event.target.value = '';
+});
+
+// Advanced Drag & Drop folder parsing
+const dropZone = $('dropZone');
+
+dropZone.addEventListener('dragover', (e) => {
+  e.preventDefault();
+  dropZone.style.borderColor = 'var(--mdui-color-primary)';
+  dropZone.style.backgroundColor = 'var(--mdui-color-primary-container)';
+});
+
+dropZone.addEventListener('dragleave', (e) => {
+  e.preventDefault();
+  dropZone.style.borderColor = '';
+  dropZone.style.backgroundColor = '';
+});
+
+dropZone.addEventListener('drop', async (e) => {
+  e.preventDefault();
+  dropZone.style.borderColor = '';
+  dropZone.style.backgroundColor = '';
+  
+  selectedFiles = [];
+  
+  async function traverseFileTree(entry, path = '') {
+    if (entry.isFile) {
+      const file = await new Promise(resolve => entry.file(resolve));
+      // ignore hidden files like .DS_Store
+      if (!file.name.startsWith('.')) {
+        selectedFiles.push({ file, targetPath: path + file.name });
+      }
+    } else if (entry.isDirectory) {
+      const dirReader = entry.createReader();
+      let entries = [];
+      let readResults = await new Promise(resolve => dirReader.readEntries(resolve));
+      // readEntries might not return all entries in one go, must loop until empty
+      while (readResults.length > 0) {
+        entries.push(...readResults);
+        readResults = await new Promise(resolve => dirReader.readEntries(resolve));
+      }
+      for (const child of entries) {
+        await traverseFileTree(child, path + entry.name + '/');
+      }
+    }
+  }
+
+  const items = e.dataTransfer.items;
+  if (items) {
+    const promises = [];
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
+      if (item.kind === 'file') {
+        const entry = item.webkitGetAsEntry();
+        if (entry) promises.push(traverseFileTree(entry));
+      }
+    }
+    await Promise.all(promises);
+  }
+  
+  updateFileListUI();
+});
 
 // ── Build ─────────────────────────────────────────────────────────────────────
 
