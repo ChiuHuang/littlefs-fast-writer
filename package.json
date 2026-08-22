@@ -1,5 +1,0 @@
-{
-  "scripts": {
-    "build": "SHA=${VERCEL_GIT_COMMIT_SHA:-dev}; SHORT=${SHA:0:7}; A=${SHORT:0:3}; B=${SHORT:3:2}; C=${SHORT:5:2}; sed -i \"s/name=\\\"bh-a\\\" content=\\\"[^\\\"]*\\\"/name=\\\"bh-a\\\" content=\\\"$A\\\"/\" index.html && sed -i \"s/--bh-b: \\\"[^\\\"]*\\\";/--bh-b: \\\"$B\\\";/\" style.css && sed -i \"s/const HASH_C = '[^']*';/const HASH_C = '$C';/\" app.js"
-  }
-}
