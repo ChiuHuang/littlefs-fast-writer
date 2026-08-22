@@ -1,6 +1,12 @@
 import { ESPLoader, Transport } from 'https://cdn.jsdelivr.net/npm/esptool-js@0.5.7/bundle.js';
 import { createLittleFS, createLittleFSFromImage } from './wasm/index.js';
 
+// ── Version badge ─────────────────────────────────────────────────────────────
+fetch('https://api.github.com/repos/ChiuHuang/littlefs-fast-writer/commits/main')
+  .then(r => r.json())
+  .then(d => { if (d.sha) $('versionBadge').textContent = d.sha.slice(0, 7); })
+  .catch(() => { $('versionBadge').textContent = ''; });
+
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
 const $ = id => document.getElementById(id);

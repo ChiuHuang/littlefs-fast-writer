@@ -217,3 +217,18 @@ body.is-flashing #log {
 body.is-flashing #logCard {
   display: none !important;
 }
+
+/* -- Version badge -- */
+#versionBadge {
+  position: fixed;
+  bottom: 8px;
+  right: 12px;
+  font-size: 10px;
+  color: var(--mdui-color-on-surface-variant);
+  opacity: 0.45;
+  font-family: ui-monospace, monospace;
+  z-index: 1000;
+  pointer-events: none;
+  user-select: none;
+}
+
