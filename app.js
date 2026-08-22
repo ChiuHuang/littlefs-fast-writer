@@ -432,17 +432,15 @@ $('write').addEventListener('click', async () => {
       },
     });
 
-    setProgress(100, 'Flash verified and complete ✔', false);
+    setProgress(100, 'Flash verified and complete', false);
     log('Write complete — reset the device to boot from the new filesystem.', 'ok');
     log('─────────────────────────────', 'info');
 
-    // Update dialog to success
-    $('verifySpinner').style.display = 'none';
-    $('verifySuccessIcon').style.display = 'inline-block';
-    $('verifySuccessIcon').classList.add('pop-anim');
-    $('verifyTitle').textContent = 'Flash Complete ✔';
-    $('verifyText').textContent = 'LittleFS written successfully. Reset the device to boot.';
-    $('verifyActions').style.display = 'flex';
+    // Verification successful, close dialog and exit fullscreen immediately
+    if ($('verifyDialog').open) $('verifyDialog').open = false;
+    document.body.classList.remove('is-flashing');
+    $('originalLogContainer').appendChild($('log'));
+    $('flashLogContainer').style.display = 'none';
 
   } catch (e) {
     if (transport) await transport.disconnect();
@@ -452,13 +450,6 @@ $('write').addEventListener('click', async () => {
     if ($('verifyDialog').open) $('verifyDialog').open = false;
     showError('Write error', e.message);
   }
-});
-
-$('verifyOkBtn').addEventListener('click', () => {
-  $('verifyDialog').open = false;
-  document.body.classList.remove('is-flashing');
-  $('originalLogContainer').appendChild($('log'));
-  $('flashLogContainer').style.display = 'none';
 });
 
 // ── List Contents ─────────────────────────────────────────────────────────────

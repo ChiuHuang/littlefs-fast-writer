@@ -102,22 +102,19 @@
           <div class="card-body" id="originalLogContainer">
             <pre id="log" class="code-block log-block"></pre>
           </div>
+          </div>
         </mdui-card>
 
       </div>
     </mdui-layout-main>
   </mdui-layout>
   
-  <!-- ?�?� Verification Dialog ?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?�?� -->
+  <!-- ── Verification Dialog ──────────────────────────────── -->
   <mdui-dialog id="verifyDialog" close-on-esc="false" close-on-overlay-click="false">
     <div style="text-align: center; padding: 32px 24px;">
       <mdui-circular-progress id="verifySpinner" style="width: 64px; height: 64px;"></mdui-circular-progress>
-      <mdui-icon name="check_circle" id="verifySuccessIcon" style="display: none; font-size: 64px; color: var(--mdui-color-primary);"></mdui-icon>
       <h2 id="verifyTitle" style="margin-top: 24px; margin-bottom: 8px;">Verifying Flash...</h2>
       <p id="verifyText" style="color: var(--mdui-color-on-surface-variant);">Hardware MD5 hash check in progress (up to 30s)</p>
-    </div>
-    <div class="mdui-dialog-actions" id="verifyActions" style="display: none; justify-content: center; padding-bottom: 24px;">
-      <mdui-button id="verifyOkBtn" variant="filled">Awesome!</mdui-button>
     </div>
   </mdui-dialog>
 
