@@ -318,10 +318,18 @@ $('write').addEventListener('click', async () => {
   try {
     if (!image || !partition) throw new Error('Image or partition info missing.');
     
-    // Trigger PPT-like transition & fullscreen
-    document.body.classList.add('is-flashing');
-    $('flashLogContainer').appendChild($('log'));
-    $('flashLogContainer').style.display = 'flex';
+    // Trigger immersive fullscreen with View Transitions
+    const applyFullscreen = () => {
+      document.body.classList.add('is-flashing');
+      $('flashLogContainer').appendChild($('log'));
+      $('flashLogContainer').style.display = 'flex';
+    };
+
+    if (document.startViewTransition) {
+      document.startViewTransition(applyFullscreen);
+    } else {
+      applyFullscreen();
+    }
     
     log(`──────────────────────────────────────────────────`, 'info');
     log(`Starting write sequence`, 'info');
@@ -438,15 +446,31 @@ $('write').addEventListener('click', async () => {
 
     // Verification successful, close dialog and exit fullscreen immediately
     if ($('verifyDialog').open) $('verifyDialog').open = false;
-    document.body.classList.remove('is-flashing');
-    $('originalLogContainer').appendChild($('log'));
-    $('flashLogContainer').style.display = 'none';
+    const revertFullscreen = () => {
+      document.body.classList.remove('is-flashing');
+      $('originalLogContainer').appendChild($('log'));
+      $('flashLogContainer').style.display = 'none';
+    };
+    if (document.startViewTransition) {
+      document.startViewTransition(revertFullscreen);
+    } else {
+      revertFullscreen();
+    }
 
   } catch (e) {
     if (transport) await transport.disconnect();
-    document.body.classList.remove('is-flashing');
-    $('originalLogContainer').appendChild($('log'));
-    $('flashLogContainer').style.display = 'none';
+    
+    const revertFullscreen = () => {
+      document.body.classList.remove('is-flashing');
+      $('originalLogContainer').appendChild($('log'));
+      $('flashLogContainer').style.display = 'none';
+    };
+    if (document.startViewTransition) {
+      document.startViewTransition(revertFullscreen);
+    } else {
+      revertFullscreen();
+    }
+    
     if ($('verifyDialog').open) $('verifyDialog').open = false;
     showError('Write error', e.message);
   }

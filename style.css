@@ -185,3 +185,16 @@ body.is-flashing #logCard {
   display: none;
 }
 
+
+#flashCard {
+  view-transition-name: flash-card;
+}
+body.is-flashing {
+  overflow: hidden !important;
+}
+body.is-flashing #flashCard {
+  --mdui-color-outline: transparent;
+  outline: none;
+  box-shadow: none;
+}
+
