@@ -126,10 +126,11 @@ $('connect').addEventListener('click', async () => {
     const port = await navigator.serial.requestPort();
     log('Port selected, initialising transport…', 'debug');
 
+    const baudrate = parseInt($('baudrate').value, 10);
     transport = new Transport(port);
     loader = new ESPLoader({
       transport,
-      baudrate: 921600,
+      baudrate,
       terminal: {
         clean() {},
         writeLine: m => log(`[esptool] ${m}`, 'debug'),
@@ -192,6 +193,8 @@ $('build').addEventListener('click', async () => {
       fs.addFile('/' + f.name, data);
     }
 
+    // Unmount flushes the LittleFS cache/lookahead/superblock to the RAM image buffer
+    fs.unmount();
     image = fs.toImage();
     log(`Image built: ${fmtBytes(image.length)} used of ${fmtBytes(partition.size)} (${(image.length / partition.size * 100).toFixed(1)} %)`, 'ok');
 
@@ -224,36 +227,24 @@ $('write').addEventListener('click', async () => {
     log(`  Partition size   : ${fmtBytes(partition.size)}`, 'info');
     log(`  Image size       : ${fmtBytes(image.length)}`, 'info');
 
-    // writeFlash with eraseAll:false erases each sector just before writing it.
-    // data must be a binary string — Uint8Array causes "charCodeAt is not a function".
-    const CHUNK = 0x4000;   // 16 KiB
-    const totalChunks = Math.ceil(image.length / CHUNK);
-    log(`Writing ${fmtBytes(image.length)} in ${totalChunks} chunk(s) of ${fmtBytes(CHUNK)} (erase-on-write)…`, 'info');
-    setProgress(0, 'Writing…');
+    // esptool-js handles deflate compression, chunking, and MD5 verification automatically.
+    // It requires the data to be a binary string (calls .charCodeAt() internally).
+    setProgress(0, 'Preparing image for flash…');
+    const data = toBinaryString(image);
 
-    let bytesWritten = 0;
-    for (let i = 0; i < image.length; i += CHUNK) {
-      const chunkIndex = Math.floor(i / CHUNK) + 1;
-      const chunk = image.slice(i, i + CHUNK);
-      // Convert to binary string — esptool-js calls .charCodeAt() internally
-      const data = toBinaryString(chunk);
-
-      log(`  Chunk ${chunkIndex}/${totalChunks}  address=${hex(partition.offset + i)}  size=${fmtBytes(chunk.length)}`, 'debug');
-
-      await loader.writeFlash({
-        fileArray: [{ address: partition.offset + i, data }],
-        flashSize:  'keep',
-        flashMode:  'keep',
-        flashFreq:  'keep',
-        eraseAll:   false,
-        compress:   true,
-        reportProgress: (_idx, written, _total) => {
-          bytesWritten = i + written;
-          const pct = Math.round(bytesWritten / image.length * 100);
-          setProgress(pct, `Writing… ${pct} %  (${fmtBytes(bytesWritten)} / ${fmtBytes(image.length)})`);
-        },
-      });
-    }
+    await loader.writeFlash({
+      fileArray: [{ address: partition.offset, data }],
+      flashSize:  'keep',
+      flashMode:  'keep',
+      flashFreq:  'keep',
+      eraseAll:   false,
+      compress:   true,
+      calculateMD5Hash: (binStr) => SparkMD5.hash(binStr),
+      reportProgress: (fileIndex, written, total) => {
+        const pct = Math.round(written / total * 100);
+        setProgress(pct, `Writing… ${pct} %  (${fmtBytes(written)} / ${fmtBytes(total)})`);
+      },
+    });
 
     setProgress(100, 'Flash complete ✔');
     log('Write complete — reset the device to boot from the new filesystem.', 'ok');

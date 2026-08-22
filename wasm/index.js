@@ -514,6 +514,10 @@ function createClient(Module, blockSize, blockCount) {
             return usage.freeBytes >= size;
         },
 
+        unmount() {
+            Module._lfs_wasm_unmount();
+        },
+
         cleanup() {
             Module._lfs_wasm_unmount();
             Module._lfs_wasm_cleanup();

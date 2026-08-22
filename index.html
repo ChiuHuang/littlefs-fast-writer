@@ -12,6 +12,7 @@
   <!-- MDUI 2 (Material 3) -->
   <link rel="stylesheet" href="https://unpkg.com/mdui@2/mdui.css">
   <script src="https://unpkg.com/mdui@2/mdui.global.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/spark-md5/3.0.2/spark-md5.min.js"></script>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -34,6 +35,13 @@
           </div>
           <div class="card-body row gap-12 align-center">
             <mdui-button id="connect" icon="usb" variant="filled">Connect ESP</mdui-button>
+            <mdui-select id="baudrate" value="921600" variant="outlined" style="width: 150px;">
+              <mdui-menu-item value="115200">115200</mdui-menu-item>
+              <mdui-menu-item value="460800">460800</mdui-menu-item>
+              <mdui-menu-item value="921600">921600</mdui-menu-item>
+              <mdui-menu-item value="1500000">1500000</mdui-menu-item>
+              <mdui-menu-item value="2000000">2000000</mdui-menu-item>
+            </mdui-select>
             <mdui-chip id="status" icon="link_off" variant="outlined">Disconnected</mdui-chip>
           </div>
         </mdui-card>
