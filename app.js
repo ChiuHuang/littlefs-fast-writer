@@ -146,12 +146,16 @@ $('build').addEventListener('click', async () => {
     const files = [...$('files').files];
     if (!files.length) throw new Error('No files selected.');
 
-    const blockSize  = 4096;
-    const blockCount = Math.floor(partition.size / blockSize);
-    log(`Building LittleFS image: blockSize=${blockSize}, blockCount=${blockCount} (${fmtBytes(partition.size)})`, 'info');
+    const blockSize    = 4096;
+    const blockCount   = Math.floor(partition.size / blockSize);
+    // lookaheadSize must be a multiple of 8; scale with blockCount, clamp to [32, 512]
+    const lookaheadSize = Math.min(512, Math.max(32, Math.ceil(blockCount / 8) * 8));
+    log(`Building LittleFS image: blockSize=${blockSize}, blockCount=${blockCount}, lookaheadSize=${lookaheadSize} (${fmtBytes(partition.size)})`, 'info');
 
-    const fs = await createLittleFS({ blockSize, blockCount });
-    log('LittleFS WASM module initialised', 'debug');
+    // formatOnInit=true is required: without it the WASM tries to mount a blank
+    // buffer which always returns LFS_ERR_CORRUPT (-84).
+    const fs = await createLittleFS({ blockSize, blockCount, lookaheadSize, formatOnInit: true });
+    log('LittleFS WASM module initialised and formatted', 'debug');
 
     for (const f of files) {
       log(`  Adding file: /${f.name}  (${fmtBytes(f.size)})`, 'debug');
