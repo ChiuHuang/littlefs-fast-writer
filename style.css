@@ -195,7 +195,10 @@ body.is-flashing {
   min-height: 1.2em;
   margin-top: 4px;
 }
-
+/* Ensure the verify dialog renders higher than the flash overlay (9999) */
+#verifyDialog {
+  z-index: 10000 !important;
+}
 #overlayLogContainer {
   flex: 1;
   display: flex;
