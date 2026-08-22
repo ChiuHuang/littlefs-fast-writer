@@ -55,14 +55,20 @@ function fmtBytes(n) {
 }
 
 function setProgress(pct, label = '', indeterminate = false) {
+  // Main card progress (visible when not in overlay)
   const p = $('progress');
+  const op = $('overlayProgress');
   if (indeterminate) {
     p.setAttribute('indeterminate', '');
+    op.setAttribute('indeterminate', '');
   } else {
     p.removeAttribute('indeterminate');
-    p.value = pct / 100;   // mdui-linear-progress uses 0..1
+    p.value = pct / 100;
+    op.removeAttribute('indeterminate');
+    op.value = pct / 100;
   }
   $('progressLabel').textContent = label;
+  $('overlayProgressLabel').textContent = label;
 }
 
 /**
@@ -321,23 +327,27 @@ $('build').addEventListener('click', async () => {
 
 // ── Write ─────────────────────────────────────────────────────────────────────
 
+function enterFlashMode() {
+  document.body.classList.add('is-flashing');
+  $('overlayLogContainer').appendChild($('log'));
+  $('log').scrollTop = $('log').scrollHeight;
+}
+
+function exitFlashMode() {
+  document.body.classList.remove('is-flashing');
+  $('originalLogContainer').appendChild($('log'));
+}
+
 $('write').addEventListener('click', async () => {
   try {
     if (!image || !partition) throw new Error('Image or partition info missing.');
-    
-    // Trigger immersive fullscreen with View Transitions
-    const applyFullscreen = () => {
-      document.body.classList.add('is-flashing');
-      $('flashLogContainer').appendChild($('log'));
-      $('flashLogContainer').style.display = 'flex';
-    };
 
     if (document.startViewTransition) {
-      document.startViewTransition(applyFullscreen);
+      document.startViewTransition(enterFlashMode);
     } else {
-      applyFullscreen();
+      enterFlashMode();
     }
-    
+
     log(`──────────────────────────────────────────────────`, 'info');
     log(`Starting write sequence`, 'info');
     
@@ -445,34 +455,22 @@ $('write').addEventListener('click', async () => {
     log('Write complete — reset the device to boot from the new filesystem.', 'ok');
     log('─────────────────────────────', 'info');
 
-    // Verification successful, close dialog and exit fullscreen immediately
+    // Verification successful — close dialog and exit fullscreen
     if ($('verifyDialog').open) $('verifyDialog').open = false;
-    const revertFullscreen = () => {
-      document.body.classList.remove('is-flashing');
-      $('originalLogContainer').appendChild($('log'));
-      $('flashLogContainer').style.display = 'none';
-    };
     if (document.startViewTransition) {
-      document.startViewTransition(revertFullscreen);
+      document.startViewTransition(exitFlashMode);
     } else {
-      revertFullscreen();
+      exitFlashMode();
     }
 
   } catch (e) {
     if (transport) await transport.disconnect();
-    
-    const revertFullscreen = () => {
-      document.body.classList.remove('is-flashing');
-      $('originalLogContainer').appendChild($('log'));
-      $('flashLogContainer').style.display = 'none';
-    };
-    if (document.startViewTransition) {
-      document.startViewTransition(revertFullscreen);
-    } else {
-      revertFullscreen();
-    }
-    
     if ($('verifyDialog').open) $('verifyDialog').open = false;
+    if (document.startViewTransition) {
+      document.startViewTransition(exitFlashMode);
+    } else {
+      exitFlashMode();
+    }
     showError('Write error', e.message);
   }
 });

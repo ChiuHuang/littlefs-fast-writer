@@ -121,9 +121,9 @@ mdui-linear-progress {
   .row   { flex-direction: column; }
 }
 
-/* -- Flash PPT Animation -- */
+/* -- Transition cards collapse when flashing -- */
 .transition-card {
-  transition: max-height 0.8s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.5s ease, margin 0.6s ease;
+  transition: max-height 0.7s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.4s ease, margin 0.5s ease;
   max-height: 800px;
   overflow: hidden;
   opacity: 1;
@@ -138,84 +138,92 @@ body.is-flashing .transition-card {
   border: none;
 }
 
-/* Pop animation for verification dialog */
-@keyframes popIn {
-  0% { transform: scale(0.5); opacity: 0; }
-  70% { transform: scale(1.2); opacity: 1; }
-  100% { transform: scale(1); opacity: 1; }
+/* -- Dedicated Fullscreen Overlay (plain div, no shadow DOM) -- */
+#flashOverlay {
+  position: fixed;
+  inset: 0;
+  background: var(--mdui-color-surface);
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  padding: 40px;
+  box-sizing: border-box;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s ease;
 }
-.pop-anim {
-  animation: popIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-  display: inline-flex !important;
+body.is-flashing #flashOverlay {
+  opacity: 1;
+  pointer-events: auto;
 }
 
-
-/* -- Fullscreen Flash Animation -- */
-#flashCard {
-  view-transition-name: flash-card;
+/* Hide the normal Image & Flash and Log cards behind overlay */
+body.is-flashing #flashCard,
+body.is-flashing #logCard {
+  display: none !important;
 }
 
 body.is-flashing {
   overflow: hidden !important;
-  height: 100vh;
 }
 
-body.is-flashing #flashCard {
-  position: fixed !important;
-  inset: 0 !important;          /* top:0 right:0 bottom:0 left:0 */
-  width: 100vw !important;
-  height: 100vh !important;
-  margin: 0 !important;
-  padding: 0 !important;
-  border-radius: 0 !important;
-  border: none !important;
-  outline: none !important;
-  box-shadow: none !important;
-  z-index: 9999;
-  display: flex !important;
-  flex-direction: column !important;
-  box-sizing: border-box !important;
-  /* Kill the mdui-card internal border via CSS custom property */
-  --mdui-color-outline: transparent !important;
-  --mdui-color-outline-variant: transparent !important;
-}
-
-/* Strip mdui-card's internal ::part border as well */
-body.is-flashing #flashCard::part(base) {
-  border: none !important;
-  border-radius: 0 !important;
-  box-shadow: none !important;
-}
-
-body.is-flashing #flashCard .card-header {
-  padding: 12px 20px;
+#overlayHeader {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--mdui-color-primary);
+  margin-bottom: 32px;
   flex-shrink: 0;
 }
-
-body.is-flashing #flashCard .card-body {
-  flex: 1 !important;
-  display: flex !important;
-  flex-direction: column !important;
-  overflow: hidden !important;
-  padding: 12px 20px 20px !important;
+#overlayHeader h2 {
+  margin: 0;
+  font-size: 1.4rem;
+  font-weight: 500;
+  color: var(--mdui-color-on-surface);
 }
 
-body.is-flashing #flashLogContainer {
-  flex: 1 !important;
-  overflow: hidden !important;
-  display: flex !important;
-  flex-direction: column !important;
+#overlayProgressContainer {
+  margin-bottom: 24px;
+  flex-shrink: 0;
+}
+.progress-label {
+  font-size: 0.78rem;
+  color: var(--mdui-color-on-surface-variant);
+  min-height: 1.2em;
+  margin-top: 4px;
 }
 
+#overlayLogContainer {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+/* Log element when moved into overlay */
 body.is-flashing #log {
   flex: 1 !important;
-  height: 0 !important;          /* forces flex child to actually scroll */
+  height: 0 !important;
   max-height: none !important;
   overflow-y: auto !important;
+  background: #1a1a1a !important;
+  color: #d4d4d4 !important;
+  padding: 16px !important;
+  border-radius: 8px !important;
+  margin: 0 !important;
+  font-size: 12.5px !important;
+  line-height: 1.65 !important;
 }
 
-body.is-flashing #logCard {
-  display: none !important;
+/* -- Pop animation -- */
+@keyframes popIn {
+  0%   { transform: scale(0.5); opacity: 0; }
+  70%  { transform: scale(1.2); opacity: 1; }
+  100% { transform: scale(1);   opacity: 1; }
+}
+.pop-anim {
+  animation: popIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+  display: inline-flex !important;
 }
 
 /* -- Version badge -- */
@@ -227,25 +235,7 @@ body.is-flashing #logCard {
   color: var(--mdui-color-on-surface-variant);
   opacity: 0.45;
   font-family: ui-monospace, monospace;
-  z-index: 1000;
+  z-index: 10000;
   pointer-events: none;
   user-select: none;
 }
-
-
-body.is-flashing #flashCard .card-body > .row {
-  display: none !important; /* hide buttons */
-}
-body.is-flashing #flashCard .card-body {
-  justify-content: center;
-  padding: 48px !important; /* more breathing room */
-}
-body.is-flashing #flashLogContainer {
-  margin-top: 32px !important; /* push log down */
-}
-body.is-flashing #log {
-  background: #000;
-  border-radius: 8px;
-  padding: 16px;
-}
-
