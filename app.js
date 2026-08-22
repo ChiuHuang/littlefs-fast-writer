@@ -26,23 +26,30 @@ document.addEventListener('DOMContentLoaded', () => {
 
   badge.textContent = localHash;
 
-  // Verify against GitHub — confirms all 3 parts came from the same commit
-  fetch('https://api.github.com/repos/ChiuHuang/littlefs-fast-writer/commits/main')
-    .then(r => r.json())
-    .then(d => {
-      if (!d.sha) return;
-      const remoteHash = d.sha.slice(0, 7);
-      if (remoteHash === localHash) {
-        badge.title = 'All 3 files verified ✔ — HTML + CSS + JS match GitHub';
-        badge.style.color = 'var(--mdui-color-primary)';
-      } else {
-        badge.textContent = `${localHash} ≠ ${remoteHash}`;
-        badge.title = `Files may be stale — GitHub latest is ${remoteHash}`;
-        badge.style.opacity = '0.9';
-        badge.style.color = 'orange';
-      }
-    })
-    .catch(() => {});
+  // Verify against GitHub — skip the action's own [ci skip] commit, use its parent
+  const getVerifiedSha = async () => {
+    const r = await fetch('https://api.github.com/repos/ChiuHuang/littlefs-fast-writer/commits/main');
+    const d = await r.json();
+    if (!d.sha) return null;
+    // If latest commit is the action injection commit, use its parent (the real push)
+    if (d.commit?.message?.includes('[ci skip]') && d.parents?.[0]?.sha) {
+      return d.parents[0].sha.slice(0, 7);
+    }
+    return d.sha.slice(0, 7);
+  };
+
+  getVerifiedSha().then(remoteHash => {
+    if (!remoteHash) return;
+    if (remoteHash === localHash) {
+      badge.title = 'All 3 files verified ✔ — HTML + CSS + JS match GitHub';
+      badge.style.color = 'var(--mdui-color-primary)';
+    } else {
+      badge.textContent = `${localHash} ≠ ${remoteHash}`;
+      badge.title = `Files may be stale — GitHub latest push is ${remoteHash}`;
+      badge.style.opacity = '0.9';
+      badge.style.color = 'orange';
+    }
+  }).catch(() => {});
 });
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
