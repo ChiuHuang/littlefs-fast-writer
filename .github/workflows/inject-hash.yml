@@ -10,6 +10,8 @@ on:
 jobs:
   inject:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     # Skip if this was already an action commit
     if: "!contains(github.event.head_commit.message, '[ci skip]')"
 
