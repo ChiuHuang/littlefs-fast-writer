@@ -35,57 +35,53 @@
           </div>
           <div class="card-body row gap-12 align-center">
             <mdui-button id="connect" icon="usb" variant="filled">Connect ESP</mdui-button>
-            <mdui-select id="baudrate" value="auto" variant="outlined" style="width: 150px;">
-              <mdui-menu-item value="auto">Auto-detect</mdui-menu-item>
-              <mdui-menu-item value="2000000">2000000</mdui-menu-item>
-              <mdui-menu-item value="1500000">1500000</mdui-menu-item>
-              <mdui-menu-item value="921600">921600</mdui-menu-item>
-              <mdui-menu-item value="460800">460800</mdui-menu-item>
-              <mdui-menu-item value="115200">115200</mdui-menu-item>
-            </mdui-select>
             <mdui-chip id="status" icon="link_off" variant="outlined">Disconnected</mdui-chip>
           </div>
         </mdui-card>
 
-        <!-- ── Partition ───────────────────────────────────────── -->
+        <!-- ── Partition ──────────────────────────────────────── -->
         <mdui-card class="card" variant="outlined">
           <div class="card-header">
-            <mdui-icon name="table_chart"></mdui-icon>
+            <mdui-icon name="sd_card"></mdui-icon>
             <span class="card-title">Partition</span>
           </div>
           <div class="card-body">
-            <pre id="partition" class="code-block">Connect to detect partition table…</pre>
+            <div class="code-block" id="partition">Connect device to read partition table.</div>
           </div>
         </mdui-card>
 
         <!-- ── Files ──────────────────────────────────────────── -->
         <mdui-card class="card" variant="outlined">
           <div class="card-header">
-            <mdui-icon name="folder_open"></mdui-icon>
+            <mdui-icon name="folder"></mdui-icon>
             <span class="card-title">Files</span>
           </div>
+          <div class="card-body row gap-12">
+            <mdui-button icon="attach_file" onclick="document.getElementById('files').click()">Select Files</mdui-button>
+            <input type="file" id="files" multiple style="display: none;">
+            <mdui-button id="build" icon="build" disabled>Build Image</mdui-button>
+          </div>
           <div class="card-body">
-            <label class="file-drop">
-              <mdui-icon name="upload_file" class="upload-icon"></mdui-icon>
-              <span>Click to select files (or drag &amp; drop)</span>
-              <input id="files" type="file" multiple>
-            </label>
-            <mdui-list id="fileList"></mdui-list>
-            <mdui-button id="build" icon="build" disabled>Build LittleFS Image</mdui-button>
+            <mdui-list id="fileList" style="max-height: 200px; overflow-y: auto; background: var(--mdui-color-surface-container); border-radius: 8px;"></mdui-list>
           </div>
         </mdui-card>
 
-        <!-- ── Image &amp; Write ──────────────────────────────────── -->
+        <!-- ── Image & Flash ──────────────────────────────────── -->
         <mdui-card class="card" variant="outlined">
           <div class="card-header">
             <mdui-icon name="memory"></mdui-icon>
-            <span class="card-title">Image &amp; Flash</span>
+            <span class="card-title">Image & Flash</span>
           </div>
           <div class="card-body">
-            <pre id="image" class="code-block">No image built.</pre>
-            <mdui-button id="write" icon="flash_on" variant="filled" disabled>Erase + Write LittleFS</mdui-button>
-            <mdui-linear-progress id="progress" value="0"></mdui-linear-progress>
-            <div id="progressLabel" class="progress-label"></div>
+            <div class="code-block" id="image">Build an image first.</div>
+            <div class="row gap-12 align-center" style="margin-top: 16px;">
+              <mdui-button id="write" icon="flash_on" variant="filled" disabled>Write to Flash</mdui-button>
+              <mdui-checkbox id="autotest">Auto-test max speed</mdui-checkbox>
+            </div>
+            <div style="margin-top: 16px;">
+              <mdui-linear-progress id="progress" value="0"></mdui-linear-progress>
+              <div id="progressLabel" class="progress-label"></div>
+            </div>
           </div>
         </mdui-card>
 

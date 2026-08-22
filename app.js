@@ -126,46 +126,34 @@ $('connect').addEventListener('click', async () => {
     const port = await navigator.serial.requestPort();
     log('Port selected, initialising transport…', 'debug');
 
-    const baudSelect = $('baudrate').value;
-    const testRates = baudSelect === 'auto'
-      ? [2000000, 1500000, 921600, 460800, 115200]
-      : [parseInt(baudSelect, 10)];
+    // Connect initially at 921600 to get partition map
+    const initialBaud = 921600;
+    
+    // We store the port object globally so we can reconnect on write
+    window.esptoolPort = port;
 
-    let connected = false;
-    for (const baud of testRates) {
-      try {
-        log(`Testing connection at ${baud} baud…`, 'debug');
-        transport = new Transport(port);
-        loader = new ESPLoader({
-          transport,
-          baudrate: baud,
-          terminal: {
-            clean() {},
-            writeLine: m => log(`[esptool] ${m}`, 'debug'),
-            write:     m => log(`[esptool] ${String(m)}`, 'debug'),
-          },
-        });
+    transport = new Transport(port);
+    loader = new ESPLoader({
+      transport,
+      baudrate: initialBaud,
+      terminal: {
+        clean() {},
+        writeLine: m => log(`[esptool] ${m}`, 'debug'),
+        write:     m => log(`[esptool] ${String(m)}`, 'debug'),
+      },
+    });
 
-        const chipInfo = await loader.main();
-        log(`Chip detected: ${chipInfo ?? '(unknown)'}`, 'ok');
-        log(`Successfully connected at ${baud} baud!`, 'ok');
-
-        $('baudrate').value = baud.toString(); // Update dropdown if auto
-        connected = true;
-        break; // Stop testing on success!
-      } catch (e) {
-        log(`Failed at ${baud} baud: ${e.message}`, 'warn');
-        if (transport) await transport.disconnect();
-      }
-    }
-
-    if (!connected) throw new Error('Could not connect at any baud rate.');
+    log(`Testing connection at ${initialBaud} baud…`, 'debug');
+    const chipInfo = await loader.main();
+    log(`Chip detected: ${chipInfo ?? '(unknown)'}`, 'ok');
+    log(`Successfully connected at ${initialBaud} baud!`, 'ok');
 
     $('status').textContent = 'Connected';
     $('status').setAttribute('icon', 'link');
 
     await readPartitions();
   } catch (e) {
+    if (transport) await transport.disconnect();
     showError('Connect failed', e.message);
   }
 });
@@ -241,6 +229,72 @@ $('write').addEventListener('click', async () => {
 
     log('──────────────────────────────────────────────────', 'info');
     log(`Starting write sequence`, 'info');
+    
+    // Auto-test logic before writing
+    if ($('autotest').checked) {
+      log('Starting auto-baud stability test…', 'info');
+      const testRates = [2000000, 1500000, 921600, 460800, 115200];
+      let maxStable = 115200;
+      
+      // Disconnect current 921600 link
+      if (transport) await transport.disconnect();
+      
+      for (const baud of testRates) {
+        try {
+          log(`  Testing ${baud} baud…`, 'debug');
+          transport = new Transport(window.esptoolPort);
+          loader = new ESPLoader({
+            transport,
+            baudrate: baud,
+            terminal: {
+              clean() {},
+              writeLine: m => log(`[esptool] ${m}`, 'debug'),
+              write:     m => log(`[esptool] ${String(m)}`, 'debug'),
+            },
+          });
+          
+          await loader.main();
+          log(`    Connected, testing stability with 32-byte write…`, 'debug');
+          
+          // Test stability with 32 byte flash write at partition offset
+          const dummy = toBinaryString(new Uint8Array(32).fill(0xAA));
+          await loader.writeFlash({
+            fileArray: [{ address: partition.offset, data: dummy }],
+            flashSize: 'keep', flashMode: 'keep', flashFreq: 'keep', eraseAll: false, compress: false,
+            reportProgress: () => {}
+          });
+          
+          maxStable = baud;
+          log(`  Stable at ${baud} baud! ✔`, 'ok');
+          localStorage.setItem('max-baud', baud.toString());
+          $('autotest').checked = false;
+          break;
+        } catch (e) {
+          log(`    Failed at ${baud}: ${e.message}`, 'warn');
+          if (transport) await transport.disconnect();
+        }
+      }
+      // Leave loader connected at maxStable
+    } else {
+      // Not autotesting, but let's check if we have a saved max-baud
+      const savedBaud = parseInt(localStorage.getItem('max-baud'), 10);
+      if (savedBaud && savedBaud !== loader.baudrate) {
+        log(`Reconnecting at saved max speed: ${savedBaud} baud…`, 'info');
+        if (transport) await transport.disconnect();
+        transport = new Transport(window.esptoolPort);
+        loader = new ESPLoader({
+          transport,
+          baudrate: savedBaud,
+          terminal: {
+            clean() {},
+            writeLine: m => log(`[esptool] ${m}`, 'debug'),
+            write:     m => log(`[esptool] ${String(m)}`, 'debug'),
+          },
+        });
+        await loader.main();
+      }
+    }
+
     log(`  Target partition : "${partition.label}"`, 'info');
     log(`  Offset           : ${hex(partition.offset)}`, 'info');
     log(`  Partition size   : ${fmtBytes(partition.size)}`, 'info');
