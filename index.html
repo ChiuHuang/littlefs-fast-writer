@@ -35,12 +35,13 @@
           </div>
           <div class="card-body row gap-12 align-center">
             <mdui-button id="connect" icon="usb" variant="filled">Connect ESP</mdui-button>
-            <mdui-select id="baudrate" value="921600" variant="outlined" style="width: 150px;">
-              <mdui-menu-item value="115200">115200</mdui-menu-item>
-              <mdui-menu-item value="460800">460800</mdui-menu-item>
-              <mdui-menu-item value="921600">921600</mdui-menu-item>
-              <mdui-menu-item value="1500000">1500000</mdui-menu-item>
+            <mdui-select id="baudrate" value="auto" variant="outlined" style="width: 150px;">
+              <mdui-menu-item value="auto">Auto-detect</mdui-menu-item>
               <mdui-menu-item value="2000000">2000000</mdui-menu-item>
+              <mdui-menu-item value="1500000">1500000</mdui-menu-item>
+              <mdui-menu-item value="921600">921600</mdui-menu-item>
+              <mdui-menu-item value="460800">460800</mdui-menu-item>
+              <mdui-menu-item value="115200">115200</mdui-menu-item>
             </mdui-select>
             <mdui-chip id="status" icon="link_off" variant="outlined">Disconnected</mdui-chip>
           </div>

@@ -126,21 +126,40 @@ $('connect').addEventListener('click', async () => {
     const port = await navigator.serial.requestPort();
     log('Port selected, initialising transport…', 'debug');
 
-    const baudrate = parseInt($('baudrate').value, 10);
-    transport = new Transport(port);
-    loader = new ESPLoader({
-      transport,
-      baudrate,
-      terminal: {
-        clean() {},
-        writeLine: m => log(`[esptool] ${m}`, 'debug'),
-        write:     m => log(`[esptool] ${String(m)}`, 'debug'),
-      },
-    });
+    const baudSelect = $('baudrate').value;
+    const testRates = baudSelect === 'auto'
+      ? [2000000, 1500000, 921600, 460800, 115200]
+      : [parseInt(baudSelect, 10)];
 
-    log('Running esptool main (slip detection + chip detection)…', 'debug');
-    const chipInfo = await loader.main();
-    log(`Chip detected: ${chipInfo ?? '(unknown)'}`, 'ok');
+    let connected = false;
+    for (const baud of testRates) {
+      try {
+        log(`Testing connection at ${baud} baud…`, 'debug');
+        transport = new Transport(port);
+        loader = new ESPLoader({
+          transport,
+          baudrate: baud,
+          terminal: {
+            clean() {},
+            writeLine: m => log(`[esptool] ${m}`, 'debug'),
+            write:     m => log(`[esptool] ${String(m)}`, 'debug'),
+          },
+        });
+
+        const chipInfo = await loader.main();
+        log(`Chip detected: ${chipInfo ?? '(unknown)'}`, 'ok');
+        log(`Successfully connected at ${baud} baud!`, 'ok');
+
+        $('baudrate').value = baud.toString(); // Update dropdown if auto
+        connected = true;
+        break; // Stop testing on success!
+      } catch (e) {
+        log(`Failed at ${baud} baud: ${e.message}`, 'warn');
+        if (transport) await transport.disconnect();
+      }
+    }
+
+    if (!connected) throw new Error('Could not connect at any baud rate.');
 
     $('status').textContent = 'Connected';
     $('status').setAttribute('icon', 'link');
