@@ -87,6 +87,7 @@
               <mdui-linear-progress id="progress" value="0"></mdui-linear-progress>
               <div id="progressLabel" class="progress-label"></div>
             </div>
+            <div id="flashLogContainer" style="display: none; flex-direction: column; flex: 1; margin-top: 16px; overflow: hidden;"></div>
           </div>
         </mdui-card>
 
@@ -98,7 +99,7 @@
             <div class="spacer"></div>
             <mdui-button-icon id="clearLog" icon="delete_sweep" title="Clear log"></mdui-button-icon>
           </div>
-          <div class="card-body">
+          <div class="card-body" id="originalLogContainer">
             <pre id="log" class="code-block log-block"></pre>
           </div>
         </mdui-card>

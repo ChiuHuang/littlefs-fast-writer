@@ -318,8 +318,10 @@ $('write').addEventListener('click', async () => {
   try {
     if (!image || !partition) throw new Error('Image or partition info missing.');
     
-    // Trigger PPT-like transition
+    // Trigger PPT-like transition & fullscreen
     document.body.classList.add('is-flashing');
+    $('flashLogContainer').appendChild($('log'));
+    $('flashLogContainer').style.display = 'flex';
     
     log(`──────────────────────────────────────────────────`, 'info');
     log(`Starting write sequence`, 'info');
@@ -445,6 +447,8 @@ $('write').addEventListener('click', async () => {
   } catch (e) {
     if (transport) await transport.disconnect();
     document.body.classList.remove('is-flashing');
+    $('originalLogContainer').appendChild($('log'));
+    $('flashLogContainer').style.display = 'none';
     if ($('verifyDialog').open) $('verifyDialog').open = false;
     showError('Write error', e.message);
   }
@@ -453,6 +457,8 @@ $('write').addEventListener('click', async () => {
 $('verifyOkBtn').addEventListener('click', () => {
   $('verifyDialog').open = false;
   document.body.classList.remove('is-flashing');
+  $('originalLogContainer').appendChild($('log'));
+  $('flashLogContainer').style.display = 'none';
 });
 
 // ── List Contents ─────────────────────────────────────────────────────────────
